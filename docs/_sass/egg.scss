@@ -1,0 +1,12 @@
+@charset "utf-8";
+
+@mixin media-query($device) {
+  @media screen and (max-width: $device) {
+    @content;
+  }
+}
+
+// Import partials.
+@import
+  "custom/layout"
+;

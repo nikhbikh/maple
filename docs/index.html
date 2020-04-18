@@ -1,0 +1,103 @@
+---
+layout: home
+---
+
+<form class="t1" id="t1_form">
+  <ul>
+    <li>
+      <label>Current A1C: 
+        <input type="number" id="current_a1c" name="current_a1c" required />
+      </label>
+    </li>
+    <li>
+      <label>Target A1C:
+      <input type="number" id="target_a1c" name="targert_a1c" required />
+      </label>
+    </li>
+    <li>
+      <label>eGFR: 
+      <input type="number" id="eGFR" name="eGFR" required />
+      </label>
+    </li>
+    <li>
+      <p> Risk of ASCVD, CKD, or HF? </p>
+      <label>
+      <input type="radio" id="ascvd_risk" name="risk" required />
+      Primarily ACVD
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="ckd_hf_risk" name="risk" required />
+      Primarily CKD or HF
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="no_risk" name="risk" required />
+      No
+      </label>
+    </li>
+    <li>
+      <p> Metformin status: </p>
+      <label>
+      <input type="radio" id="no_met" name="met" required />
+      Not taking
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="contra_met" name="met" required />
+      Contraindicated
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="lt3_met" name="met" required />
+      Started < 3 months ago
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="gt3_met" name="met" required />
+      Started > 3 months ago
+      </label>
+    </li>
+    <li>
+      <p> Any other drugs? </p>
+      <label>
+      <input type="radio" id="no_others" name="others" checked required />
+      No
+      </label>
+      <label>
+      <input type="radio" id="su_others" name="others" checked required />
+      Sulfonylurea
+      </label>
+    </li>
+    <li>
+      <p> Secondary Goals: </p>
+      <label>
+      <input type="radio" id="weight_goals2" name="goals2" required />
+      Primarily weight loss / preventing weight gain
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="hypo_goals2" name="goals2" required />
+      Primarily minimizing hypoglycemia
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="cost_goals2" name="goals2" required />
+      Primarily minimizing cost
+      </label>
+      <br/>
+      <label>
+      <input type="radio" id="no_goals2" name="goals2" required />
+      None
+      </label>
+    </li>
+    <li>
+      <button id="t1_button">Done</Button>
+    </li>
+  </ul>
+</form>
+
+<div>
+<p><strong>Recommendations</strong></p>
+<p id="recommendation" class="recommendation"></p>
+</div>
