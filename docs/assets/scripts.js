@@ -39,13 +39,16 @@ function getFeatures() {
   var met = getRadio("met");
   var goals2 = getRadio("goals2");
   var others = getRadio("others");
-  return [ca1c, ta1c, egfr, risk, met, goals2, others];
+  return {'ca1c': ca1c,
+          'ta1c': ta1c,
+          'egfr': egfr,
+          'risk': risk,
+          'met':  met,
+          'goals2': goals2,
+          'others':  others};
 }
 
 
-function tryMetformin(drugs, egfr, recs) {
-  if (egfr >= 
-}
 
 function t1Button(event) {
   event.preventDefault();
