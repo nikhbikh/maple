@@ -6,17 +6,17 @@ layout: home
   <ul>
     <li>
       <label>Current A1C: 
-        <input type="number" id="current_a1c" name="current_a1c" required />
+        <input type="number" id="ca1c" name="current_a1c" required />
       </label>
     </li>
     <li>
       <label>Target A1C:
-      <input type="number" id="target_a1c" name="targert_a1c" required />
+      <input type="number" id="ta1c" name="targert_a1c" required />
       </label>
     </li>
     <li>
       <label>eGFR: 
-      <input type="number" id="eGFR" name="eGFR" required />
+      <input type="number" id="egfr" name="eGFR" required />
       </label>
     </li>
     <li>
@@ -37,37 +37,19 @@ layout: home
       </label>
     </li>
     <li>
-      <p> Metformin status: </p>
-      <label>
-      <input type="radio" id="no_met" name="met" required />
-      Not taking
-      </label>
-      <br/>
-      <label>
-      <input type="radio" id="contra_met" name="met" required />
-      Contraindicated
-      </label>
-      <br/>
-      <label>
-      <input type="radio" id="lt3_met" name="met" required />
-      Started < 3 months ago
-      </label>
-      <br/>
-      <label>
-      <input type="radio" id="gt3_met" name="met" required />
-      Started > 3 months ago
+      <label id="current_drugs"><p>Current drugs:</p>
+        <div class="drug_selection">
+          <select>
+            <option value="none"></option>
+            <option value="met">Metformin</option>
+            <option value="su">Sulfonylurea</option>
+          </select>
+          <button class="remove_button">Remove</button>
+        </div>
+        <button class="add_button">Add</button>
       </label>
     </li>
     <li>
-      <p> Any other drugs? </p>
-      <label>
-      <input type="radio" id="no_others" name="others" checked required />
-      No
-      </label>
-      <label>
-      <input type="radio" id="su_others" name="others" checked required />
-      Sulfonylurea
-      </label>
     </li>
     <li>
       <p> Secondary Goals: </p>
@@ -101,3 +83,4 @@ layout: home
 <p><strong>Recommendations</strong></p>
 <p id="recommendation" class="recommendation"></p>
 </div>
+

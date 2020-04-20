@@ -4,6 +4,8 @@
  * Implements a node of a decision tree.
  */
 
+console.log('node.js')
+
 var Node = function(params) {
   this.is_leaf = params.is_leaf;
   this.action = params.action;
@@ -21,9 +23,9 @@ Node.prototype.toString = function() {
     return `action: ${this.action}`;
   }
   if (this.threshold_feature) {
-    return `${this.features} ${this.operation} ${this.threshold_feature}`;
+    return `${this.feature} ${this.operation} ${this.threshold_feature}`;
   } else {
-    return `${this.features} ${this.operation} ${this.threshold}`;
+    return `${this.feature} ${this.operation} ${this.threshold}`;
   }
 }
 
@@ -37,14 +39,14 @@ Node.prototype.traverse = function(features) {
   }
 
   var f = features[this.feature];
-  if (f == undefined) {
+  if (!defined(f)) {
     throw new NodeError(this.feature, `Feature ${this.feature} not available`);
   }
 
   var t = this.threshold;
   if (this.threshold_feature) {
     t = features[this.threshold_feature]
-    if (t == undefined) {
+    if (!defined(t)) {
       throw new NodeError(
         this.threshold_feature,
         `Feature ${this.threshold_feature} not available`);
@@ -93,15 +95,27 @@ Node.prototype.traverse = function(features) {
         return right_return;
       }
       return left_return;
+    default:
+      throw(`Operation "${this.operation}" not implemented`);
   }
 }
 
+Node.prototype.required_features = function() {
+  var f = [];
+  if (this.feature) {
+    f.push(this.feature);
+  }
+  if (this.threshold_feature) {
+    f.push(this.threshold_feature);
+  }
+  return f;
+}
 
 class NodeError extends Error {
-  constructor(field, message) {
+  constructor(feature, message) {
     super(message);
     this.name = "NodeError";
-    this.field = field;
+    this.feature = feature;
   }
 }
 
@@ -117,7 +131,6 @@ function DFS(root, op) {
   }
   node_stack.push(root);
   while (node_stack.length > 0) {
-    console.log('dfs');
     let curr_node = node_stack.pop();
     if (isLeaf(curr_node)) {
       continue;
@@ -148,7 +161,6 @@ function getAllFeatures(root) {
 }
 
 function fillLeft(root, left) {
-  console.log('fill left');
   var root_copy = JSON.parse(JSON.stringify(root));
   var op = {'before': () => {},
             'after': (curr_node) => {
@@ -167,8 +179,9 @@ function getTrees() {
                     'threshold': 30,
                     'operation': '>=',
                     'right_child': {'is_leaf': false,
-                                    'feature': 'taking_met',
-                                    'operation': 'not',
+                                    'feature': 'met',
+                                    'operation': '==',
+                                    'threshold': 'no_met',
                                     'right_child': {'is_leaf': false,
                                                     'feature': 'side_effects_met',
                                                     'operation': 'not',
@@ -227,28 +240,19 @@ function getTrees() {
   
   
   var root2 = {'feature': 'ca1c',
-           'threshold_feature': 'ta1c',
-           'operation': '>',
-           'right_child': {'feature': 'n_others',
-                           'operation': '==',
-                           'threshold': 0,
-                           'right_child': start_first_drug},
-           'left_child': {'feature': 'n_others',
-                          'threshold': 1,
-                          'right_child': start_second_drug},
-                          'left_child': {'is_leaf': true,
-                                         'action': 'Don\'t know how more than 2 drugs'}};
+               'threshold_feature': 'ta1c',
+               'operation': '>',
+               'right_child': {'feature': 'n_others',
+                               'operation': '==',
+                               'threshold': 0,
+                               'right_child': start_first_drug,
+                               'left_child': {'feature': 'n_others',
+                                              'operation': '==',
+                                              'threshold': 1,
+                                              'right_child': start_second_drug,
+                                              'left_child': {'is_leaf': true,
+                                                             'action': 'Don\'t know how more than 2 drugs'}}}};
   return [inflateTree(root1), inflateTree(root2)];
-}
-
-function traverseTree(root, features) {
-  var prev = root;
-  var next = root;
-  while (next instanceof Node) {
-    console.log(next);
-    next = next.traverse(features);
-  }
-  console.log(next);
 }
 
 function isFull(node) {
