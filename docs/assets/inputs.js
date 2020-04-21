@@ -6,19 +6,19 @@ var Inputs = function() {
 }
 
 Inputs.prototype.init = function(elements) {
-  this.elements = {};
+  this.elements = new Map();
   this.visible.clear();
   this.hidden.clear();
   console.log(elements);
   elements.forEach( elt => {
-    this.elements[elt.getName()] = elt;
+    this.elements.set(elt.getName(), elt);
     this.hidden.add(elt);
   });
   this.draw();
 }
 
 Inputs.prototype.showFeature = function(feature) {
-  var el = this.elements[feature];
+  var el = this.elements.get(feature);
   if (!el) {
     throw new Error(`Feature "${feature}" not available`);
   }
@@ -28,7 +28,9 @@ Inputs.prototype.showFeature = function(feature) {
 
 Inputs.prototype.hideAll = function(feature) {
   this.visible.clear();
-  this.elements.forEach( el => { this.hidden.add(el); });
+  for (let el of this.elements.values()) {
+    this.hidden.add(el)
+  }
 }
 
 Inputs.prototype.draw = function() {
@@ -37,10 +39,10 @@ Inputs.prototype.draw = function() {
 }
 
 Inputs.prototype.getFeatures = function() {
-  var features = {};
-  Object.entries(this.elements).map( entry => {
-    features[entry[0]] = entry[1].getValue();
-  });
+  var features = new Map();
+  for (let [key, val] of this.elements) {
+    features[key] = val.getValue();
+  }
   return features;
 }
 
@@ -55,6 +57,9 @@ AbstractInput.prototype.show = function() {
   throw new Error('Not implemented!');
 }
 AbstractInput.prototype.hide = function() {
+  throw new Error('Not implemented!');
+}
+AbstractInput.prototype.listen = function() {
   throw new Error('Not implemented!');
 }
 
@@ -83,7 +88,17 @@ NumberInput.prototype.listen = function(inputCallback) {
   this.elt.oninput = inputCallback; 
 }
 
-
+var Ta1cPlus1 = function(inputCallback) {
+  NumberInput.call(this, inputCallback, 'ta1c', 1);
+}
+Ta1cPlus1.prototype = Object.create(NumberInput.prototype);
+Ta1cPlus1.prototype.constructor = Ta1cPlus1;
+Ta1cPlus1.prototype.getName = function() {
+  return 'ta1c+1';
+}
+Ta1cPlus1.prototype.getValue = function() {
+  return this.elt.valueAsNumber + 1;
+}
 
 var RadioInput = function(inputCallback, name) {
   this.elts = document.getElementsByName(name);
@@ -119,6 +134,7 @@ ContraSu.prototype.getName  = function() { return 'contra_su'; }
 ContraSu.prototype.getValue = function() { return false; }
 ContraSu.prototype.show = function() {}
 ContraSu.prototype.hide = function() {}
+ContraSu.prototype.listen = function() {}
 
 var NOthers = function() {}
 NOthers.prototype = Object.create(AbstractInput.prototype);
@@ -127,6 +143,7 @@ NOthers.prototype.getName  = function() { return 'n_others'; }
 NOthers.prototype.getValue = function() { return 1; }
 NOthers.prototype.show = function() {}
 NOthers.prototype.hide = function() {}
+NOthers.prototype.listen = function() {}
 
 var SideEffectsMet = function() {}
 SideEffectsMet.prototype = Object.create(AbstractInput.prototype);
@@ -135,26 +152,21 @@ SideEffectsMet.prototype.getName  = function() { return 'side_effects_met'; }
 SideEffectsMet.prototype.getValue = function() { return false; }
 SideEffectsMet.prototype.show = function() {}
 SideEffectsMet.prototype.hide = function() {}
+SideEffectsMet.prototype.listen = function() {}
 
-var CurrentDrugs = function() {
-  AbstractInput.call(this);
-
-}
-CurrentDrugs.prototype = Object.create(AbstractInput.prototype);
-CurrentDrugs.prototype.constructor = CurrentDrugs;
 
 function getAllElements(inputCallback) {
+  window.cd = new CurrentDrugs(inputCallback);
   var elements = [
     new NumberInput(inputCallback, 'ca1c', 1),
     new NumberInput(inputCallback, 'ta1c', 1),
     new NumberInput(inputCallback, 'egfr', 0),
+    new Ta1cPlus1(inputCallback),
     new RadioInput(inputCallback, 'risk'),
     new RadioInput(inputCallback, 'goals2'),
-    //new RadioInput(inputCallback, 'met'),
-    //new RadioInput(inputCallback, 'others'),
     new SideEffectsMet(),
     new NOthers(),
     new ContraSu(),
-  ];
+  ].concat(cd.getFeatures());
   return elements
 }
