@@ -28,7 +28,25 @@ function unboundInputCallback() {
   this.i.hideAll();
   var recommendation = new Set();
   window.rec = recommendation;
-  this.roots.forEach( root => { 
+  var actions = new Map(); 
+  actions.get = function(key) {
+    let v = Map.prototype.get.call(this, key)
+    if (!defined(v)) {
+      v = [];
+      actions.set(key, v);
+    }
+    return v;
+  }
+  this.roots.forEach( root => {
+    let result = traverseTree(root, i.getFeatures());
+    result.required_features().forEach( f => this.i.showFeature(f));
+  });
+
+
+
+
+
+
     var action = traverseTree(root, this.i);
     if (action) {
       recommendation.add(action);

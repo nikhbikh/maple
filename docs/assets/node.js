@@ -6,16 +6,17 @@
 
 console.log('node.js')
 
-var Node = function(params) {
-  this.is_leaf = params.is_leaf;
-  this.action = params.action;
-  this.parent = params.parent;
+var Node = function(params, parent) {
+  this.right_action = params.right_action;
+  this.left_action = params.left_action;
   this.left_child = params.left_child;
   this.right_child = params.right_child;
   this.feature = params.feature;
   this.operation = params.operation;
   this.threshold = params.threshold;
   this.threshold_feature = params.threshold_feature;
+
+  this.parent = parent;
 }
 
 Node.prototype.toString = function() {
@@ -29,15 +30,47 @@ Node.prototype.toString = function() {
   }
 }
 
-Node.prototype.traverse = function(features) {
-  if (this.action) {
-    return this.action;
+Node.prototype.isLeaf = function() {
+  return (!defined(this.left_child) && !defined(this.right_child));
+}
+
+Node.prototype.evalStr(features) {
+  var test = this.test(features);
+  var f = "" + features[this.feature];
+  var t = "" + this.threshold;
+  if (this.threshold_feature) {
+    t = `${this.threshold_feature} (${features[this.threshold_feature]})`;
   }
 
-  if (!this.feature) {
-    return this.right_child;
+  switch (this.operation) {
+    case '==':
+      var op = test ? '==' : '!=';
+      return `${f} ${op} ${t}`;
+    case '>=':
+      var op = test ? '>=' : '<';
+      return `${f} ${op} ${t}`;
+    case '<=':
+      var op = test ? '<=' : '>';
+      return `${f} ${op} ${t}`;
+    case '>':
+      var op = test ? '>' : '<=';
+      return `${f} ${op} ${t}`;
+    case '<':
+      var op = test ? '<' : '>=';
+      return `${f} ${op} ${t}`;
+    case 'not':
+      var op = test ? 'not' : 'is';
+      return `${op} ${f}`;
+    case 'is':
+      var op = test ? 'is' : 'not';
+      return `${op} ${f}`;
+    default:
+      throw(`Operation "${this.operation}" not implemented`);
   }
 
+}
+
+Node.prototype.test = function(features) {
   var f = features[this.feature];
   if (!defined(f)) {
     throw new NodeError(this.feature, `Feature ${this.feature} not available`);
@@ -52,53 +85,63 @@ Node.prototype.traverse = function(features) {
         `Feature ${this.threshold_feature} not available`);
     }
   }
-  var right_return = this.right_child;
-  var left_return = this.left_child;
-  if (this.action) {
-    right_return = this.action;
-    left_return = null;
-  }
 
   switch (this.operation) {
     case '==':
       if (f == t) {
-        return right_return;
+        return true;
       }
-      return left_return;
+      return false;
     case '>=':
       if (f >= t) {
-        return right_return;
+        return true;
       }
-      return left_return;
+      return false;
     case '<=':
       if (f <= t) {
-        return right_return;
+        return true;
       }
-      return left_return;
+      return false;
     case '>':
       if (f > t) {
-        return right_return;
+        return true;
       }
-      return left_return;
+      return false;
     case '<':
       if (f < t) {
-        return right_return;
+        return true;
       }
-      return left_return;
+      return false;
     case 'not':
       if (!f) {
-        return right_return;
+        return true;
       }
-      return left_return;
+      return false;
     case 'is':
       if (f) {
-        return right_return;
+        return true;
       }
-      return left_return;
+      return false;
     default:
       throw(`Operation "${this.operation}" not implemented`);
   }
 }
+
+Node.prototype.traverse = function(features) {
+  var right_return = this.right_child;
+  var left_return = this.left_child;
+  if (this.right_action) {
+    right_return this.right_action;
+  }
+  if (this.left_action) {
+    left_return this.left_action;
+  }
+
+  if this.test(features) {
+    return right_return;
+  } else {
+    return left_return;
+  }
 
 Node.prototype.required_features = function() {
   var f = [];
@@ -117,10 +160,6 @@ class NodeError extends Error {
     this.name = "NodeError";
     this.feature = feature;
   }
-}
-
-function isLeaf(node) {
-  return (node == undefined) || (node.action) || (node == null)
 }
 
 
@@ -174,50 +213,49 @@ function fillLeft(root, left) {
 }
 
 function getTrees() {
-  var take_metformin = {'is_leaf': false,
+  var take_metformin = {
                     'feature': 'egfr',
                     'threshold': 30,
                     'operation': '>=',
-                    'right_child': {'is_leaf': false,
+                    'right_child': {
                                     'feature': 'met',
                                     'operation': '==',
                                     'threshold': 0,
-                                    'right_child': {'is_leaf': false,
+                                    'right_child': {
                                                     'feature': 'side_effects_met',
                                                     'operation': 'not',
-                                                    'right_child': {'is_leaf': true,
-                                                                    'action': 'take metformin'}}}};
+                                                    'right_action': 'take metformin'}}};
   var take_sulfonylurea = {'feature': 'contra_su',
-                       'operation': 'not',
-                       'right_child': {'action': 'take sulfonylurea'}};
+                           'operation': 'not',
+                           'right_action': 'take sulfonylurea'};
   var add_oral = fillLeft(take_metformin, take_sulfonylurea);
   var add_injectible = {"feature":"risk",
                     "operation":"==",
                     "threshold":"ascvd_risk",
-                    "right_child":{"action":"take GLP-1 RA with CVD benefits"},
+                    "right_action":"take GLP-1 RA with CVD benefits",
                     "left_child":{"feature":"risk",
                                   "operation":"==",
                                   "threshold":"ckd_hf_risk",
                                   "right_child":{"feature":"egfr",
                                                  "operation":">=",
                                                  "threshold":"45",
-                                                 "right_child":{"action":"take SGLT2i with benefits"},
-                                                 "left_child":{"action":"take GLP-1 RA with CVD benefits"}},
+                                                 "right_action":"take SGLT2i with benefits",
+                                                 "left_action":"take GLP-1 RA with CVD benefits"},
                                    "left_child":{"feature":"risk",
                                                  "operation":"==",
                                                  "threshold":"no_risk",
                                                  "right_child":{"feature":"goals2",
                                                                 "operation":"==",
                                                                 "threshold":"hypo_goals2",
-                                                                "right_child":{"action":"take GLP-1 RA"},
+                                                                "rightaction":"take GLP-1 RA",
                                                                 "left_child":{"feature":"goals2",
                                                                               "operation":"==",
                                                                               "threshold":"weight_goals2",
-                                                                              "right_child":{"action":"take GLP-1 RA"},
+                                                                              "right_action":"take GLP-1 RA",
                                                                               "left_child":{"feature":"goals2",
                                                                                             "operation":"==",
                                                                                             "threshold":"none",
-                                                                                            "right_child":{"action":"take GLP-1 RA"}}}}}}};
+                                                                                            "right_action":"take GLP-1 RA"}}}}};
   
   
   var start_first_drug = fillLeft(add_oral, add_injectible);
@@ -225,14 +263,14 @@ function getTrees() {
   var start_second_drug = {'feature': 'last_drug_time',
                        'operation': '<',
                        'threshold': 90,
-                       'right_child': {'action': 'give drug 3 months before adding a second drug.'},
+                       'right_action': 'give drug 3 months before adding a second drug.',
                        'left_child': {'feature': 'ca1c',
                                       'operation': '>',
                                       'threshold_feature': 'ta1c+1',
                                       'right_child': fillLeft(add_injectible, add_oral),
                                       'left_child': add_oral}};
   
-  var root1 = {'is_leaf': false,
+  var root1 = {
                'feature': 'ca1c',
                'threshold': 6.5,
                'operation': '>=',
@@ -250,40 +288,51 @@ function getTrees() {
                                               'operation': '==',
                                               'threshold': 1,
                                               'right_child': start_second_drug,
-                                              'left_child': {'is_leaf': true,
-                                                             'action': 'Don\'t know how more than 2 drugs'}}}};
+                                              'left_action': 'Don\'t know how more than 2 drugs'}}}};
   return [inflateTree(root1), inflateTree(root2)];
-}
-
-function isFull(node) {
-  return (node.left_child instanceof Node && node.right_child instanceof Node);
-}
-
-function nextChild(node) {
-  if ('right_child' in node && !(node.right_child instanceof Node)) {
-    return ['right_child', node.right_child];
-  }
-  if ('left_child' in node && !(node.right_child instanceof Node)) {
-    return ['left_child', node.left_child];
-  }
-  return [null, null];
-}
-
-function inflate(node) {
-  return new Node(node);
 }
 
 function inflateTree(root) {
   var op = {'before': (curr_node) => {
     if (curr_node.right_child) {
-      curr_node['right_child'] = inflate(curr_node.right_child);
+      curr_node['right_child'] = new Node(curr_node.right_child, curr_node);
     }
     if (curr_node.left_child) {
-      curr_node['left_child'] = inflate(curr_node.left_child);
+      curr_node['left_child'] = new Node(curr_node.left_child, curr_node);
     }
   }};
   var root_copy = JSON.parse(JSON.stringify(root));
   DFS(root_copy, op);
-  return inflate(root_copy);
+  return new Node(root_copy);
 }
+
+
+function traverseTree(root, features) {
+  var results = {};
+  var next = root;
+  results['path'] = [];
+  results['required_features'] = new Set();
+  while (next instanceof Node) {
+    try {
+      next.required_features().forEach( f => results.required_features.add(f));
+      results.path.push(next.evalStr(features));
+      next = next.traverse(features);
+    } catch (e) {
+      if (e instanceof NodeError) {
+        results['state'] = 'need more input';
+      } else {
+        throw (e);
+      }
+    }
+  }
+  if (next) {
+    results['state'] = 'action';
+    results['action'] = next;
+  }
+  results['state'] = 'no action';
+  return results;
+}
+
+
+
 
