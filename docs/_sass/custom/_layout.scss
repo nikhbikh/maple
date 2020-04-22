@@ -13,7 +13,17 @@ form {
   }
 }
 
-.recommendation {
+.recommendations {
   border: 1px solid grey;
   min-height: 30px;
+  overflow: scroll;
+}
+
+.recP {
+  margin-bottom: 0;
+}
+
+.subP {
+  margin-top: 5px;
+  color: grey;
 }

@@ -27,6 +27,7 @@ function defined(v) {
 function unboundInputCallback() {
   this.i.hideAll();
   var actions = new Map(); 
+  window.actions = actions;
   actions.get = function(key) {
     let v = Map.prototype.get.call(this, key)
     if (!defined(v)) {
@@ -45,8 +46,9 @@ function unboundInputCallback() {
         actions.get(result.action).push(result.path);
         break;
       case 'no action':
+        break;
       case 'need more input':
-        actions.get('need more input').push(result.path);
+        actions.get('need more input').push(result.missing_feature);
         break;
       default:
         throw (`Action ${action} not handled`);
@@ -55,16 +57,45 @@ function unboundInputCallback() {
 
   clearRecommendations();
   if (actions.has('need more input')) {
-    addRecommendation('need more input', actions.get('need more input'));
+    var sub = [...new Set(actions.get('need more input'))].join(', ')
+    addRecommendation('need more input', sub);
+    this.i.draw();
     return;
   }
   if (actions.size == 0) {
+    this.i.draw();
     addRecommendation('nothing to do');
     return;
   }
-  for (let [k, v] of actions) {
-    addRecommendation(k, v);
+  for (let [rec, path] of actions) {
+    var sub = [];
+    path.forEach( p => sub.push(p.join(' -> ')));
+    addRecommendation(rec, sub.join('<br/>'));
   }
+  this.i.draw();
+}
+
+function clearRecommendations() {
+  var recs = document.querySelector('.recommendations');
+  recs.innerHTML = '';
+}
+
+function addRecommendation(rec, sub) {
+  window.sub = sub;
+  var recs = document.querySelector('.recommendations');
+  var new_rec = document.createElement('div');
+  new_rec.setAttribute('class', 'recommendation');
+  var recP = document.createElement('p');
+  recP.setAttribute('class', 'recP');
+  recP.innerHTML = rec;
+  new_rec.appendChild(recP);
+  if (sub) {
+    var subP = document.createElement('p');
+    subP.innerHTML = sub;
+    subP.setAttribute('class', 'subP');
+    new_rec.appendChild(subP);
+  }
+  recs.appendChild(new_rec);
 }
 
 

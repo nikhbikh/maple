@@ -117,7 +117,7 @@ CurrentDrugs.prototype.getSelectedDrugs = function() {
   var current_drugs = new Map();
   for (el of this.drugs) {
     let [drug, days_ago] = getSelected(el);
-    if (drug != "none") {
+    if (drug != "none" && defined(days_ago)) {
       current_drugs.set(drug, days_ago);
     }
   }
@@ -166,7 +166,10 @@ function getSelected(drug_selection_el) {
 
 function getDaysAgo(el) { 
   var date = el.parentElement.querySelector('input').valueAsDate;
-  return Math.round((NOW - date) / 1000 / 60 / 60 / 24);
+  if (defined(date)) {
+    return Math.round((NOW - date) / 1000 / 60 / 60 / 24);
+  }
+  return null;
 }
 
 function unselected(el) {

@@ -9,7 +9,6 @@ Inputs.prototype.init = function(elements) {
   this.elements = new Map();
   this.visible.clear();
   this.hidden.clear();
-  console.log(elements);
   elements.forEach( elt => {
     this.elements.set(elt.getName(), elt);
     this.hidden.add(elt);
@@ -89,12 +88,12 @@ NumberInput.prototype.listen = function(inputCallback) {
 }
 
 var Ta1cPlus1 = function(inputCallback) {
-  NumberInput.call(this, inputCallback, 'ta1c', 1);
+  NumberInput.call(this, inputCallback, 'target_a1c', 1);
 }
 Ta1cPlus1.prototype = Object.create(NumberInput.prototype);
 Ta1cPlus1.prototype.constructor = Ta1cPlus1;
 Ta1cPlus1.prototype.getName = function() {
-  return 'ta1c+1';
+  return 'target_a1c+1';
 }
 Ta1cPlus1.prototype.getValue = function() {
   return this.elt.valueAsNumber + 1;
@@ -158,8 +157,8 @@ SideEffectsMet.prototype.listen = function() {}
 function getAllElements(inputCallback) {
   window.cd = new CurrentDrugs(inputCallback);
   var elements = [
-    new NumberInput(inputCallback, 'ca1c', 1),
-    new NumberInput(inputCallback, 'ta1c', 1),
+    new NumberInput(inputCallback, 'current_a1c', 1),
+    new NumberInput(inputCallback, 'target_a1c', 1),
     new NumberInput(inputCallback, 'egfr', 0),
     new Ta1cPlus1(inputCallback),
     new RadioInput(inputCallback, 'risk'),

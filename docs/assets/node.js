@@ -36,7 +36,7 @@ Node.prototype.isLeaf = function() {
 
 Node.prototype.evalStr = function(features) {
   var test = this.test(features);
-  var f = "" + features[this.feature];
+  var f = `${this.feature} (${features[this.feature]})`;
   var t = "" + this.threshold;
   if (this.threshold_feature) {
     t = `${this.threshold_feature} (${features[this.threshold_feature]})`;
@@ -254,7 +254,7 @@ function getTrees() {
                                                  "right_child":{"feature":"goals2",
                                                                 "operation":"==",
                                                                 "threshold":"hypo_goals2",
-                                                                "rightaction":"take GLP-1 RA",
+                                                                "right_action":"take GLP-1 RA",
                                                                 "left_child":{"feature":"goals2",
                                                                               "operation":"==",
                                                                               "threshold":"weight_goals2",
@@ -271,21 +271,21 @@ function getTrees() {
                        'operation': '<',
                        'threshold': 90,
                        'right_action': 'give drug 3 months before adding a second drug.',
-                       'left_child': {'feature': 'ca1c',
+                       'left_child': {'feature': 'current_a1c',
                                       'operation': '>',
-                                      'threshold_feature': 'ta1c+1',
+                                      'threshold_feature': 'target_a1c+1',
                                       'right_child': fillLeft(add_injectible, add_oral),
                                       'left_child': add_oral}};
   
   var root1 = {
-               'feature': 'ca1c',
+               'feature': 'current_a1c',
                'threshold': 6.5,
                'operation': '>=',
                'right_child': take_metformin};
   
   
-  var root2 = {'feature': 'ca1c',
-               'threshold_feature': 'ta1c',
+  var root2 = {'feature': 'current_a1c',
+               'threshold_feature': 'target_a1c',
                'operation': '>',
                'right_child': {'feature': 'n_drugs',
                                'operation': '==',
@@ -327,6 +327,7 @@ function traverseTree(root, features) {
     } catch (e) {
       if (e instanceof NodeError) {
         results['state'] = 'need more input';
+        results['missing_feature'] = e.feature;
         return results;
       } else {
         throw (e);
@@ -336,8 +337,9 @@ function traverseTree(root, features) {
   if (next) {
     results['state'] = 'action';
     results['action'] = next;
+  } else {
+    results['state'] = 'no action';
   }
-  results['state'] = 'no action';
   return results;
 }
 
