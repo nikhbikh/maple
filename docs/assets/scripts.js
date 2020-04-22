@@ -26,8 +26,6 @@ function defined(v) {
 
 function unboundInputCallback() {
   this.i.hideAll();
-  var recommendation = new Set();
-  window.rec = recommendation;
   var actions = new Map(); 
   actions.get = function(key) {
     let v = Map.prototype.get.call(this, key)
@@ -39,49 +37,35 @@ function unboundInputCallback() {
   }
   this.roots.forEach( root => {
     let result = traverseTree(root, i.getFeatures());
-    result.required_features().forEach( f => this.i.showFeature(f));
+    for (let f of result.required_features.values()) {
+      this.i.showFeature(f);
+    }
+    switch (result.state) {
+      case 'action':
+        actions.get(result.action).push(result.path);
+        break;
+      case 'no action':
+      case 'need more input':
+        actions.get('need more input').push(result.path);
+        break;
+      default:
+        throw (`Action ${action} not handled`);
+    }
   });
 
-
-
-
-
-
-    var action = traverseTree(root, this.i);
-    if (action) {
-      recommendation.add(action);
-    }
-    console.log('\n');
-    });
-  this.i.draw();
-  if (recommendation.size > 1 && recommendation.has('nothing to do')) {
-    recommendation.delete('nothing to do');
+  clearRecommendations();
+  if (actions.has('need more input')) {
+    addRecommendation('need more input', actions.get('need more input'));
+    return;
   }
-  document.getElementById('recommendation').innerHTML = 
-      Array.from(recommendation.values()).join('<br/>');
+  if (actions.size == 0) {
+    addRecommendation('nothing to do');
+    return;
   }
-
-function traverseTree(root, input) {
-  var features = input.getFeatures();
-  var next = root;
-  while (next instanceof Node && !isLeaf(next)) {
-    console.log(""+next);
-    next.required_features().forEach( f => { input.showFeature(f); });
-    try {
-      next = next.traverse(features);
-    } catch (e) {
-      if (e instanceof NodeError) {
-        return 'need more input';
-      } else {
-        throw (e);
-      }
-    }
-  }
-  if (next instanceof Node) {
-    return next.action;
-  } else {
-    return 'nothing to do';
+  for (let [k, v] of actions) {
+    addRecommendation(k, v);
   }
 }
+
 
 window.onload = main

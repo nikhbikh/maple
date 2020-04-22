@@ -34,7 +34,7 @@ Node.prototype.isLeaf = function() {
   return (!defined(this.left_child) && !defined(this.right_child));
 }
 
-Node.prototype.evalStr(features) {
+Node.prototype.evalStr = function(features) {
   var test = this.test(features);
   var f = "" + features[this.feature];
   var t = "" + this.threshold;
@@ -131,17 +131,18 @@ Node.prototype.traverse = function(features) {
   var right_return = this.right_child;
   var left_return = this.left_child;
   if (this.right_action) {
-    right_return this.right_action;
+    right_return = this.right_action;
   }
   if (this.left_action) {
-    left_return this.left_action;
+    left_return = this.left_action;
   }
 
-  if this.test(features) {
+  if (this.test(features)) {
     return right_return;
   } else {
     return left_return;
   }
+}
 
 Node.prototype.required_features = function() {
   var f = [];
@@ -162,6 +163,12 @@ class NodeError extends Error {
   }
 }
 
+function isLeaf(node) {
+  if (node instanceof Node) {
+    return node.isLeaf();
+  }
+  return (new Node(node)).isLeaf();
+}
 
 function DFS(root, op) {
   var node_stack = [];
@@ -255,7 +262,7 @@ function getTrees() {
                                                                               "left_child":{"feature":"goals2",
                                                                                             "operation":"==",
                                                                                             "threshold":"none",
-                                                                                            "right_action":"take GLP-1 RA"}}}}};
+                                                                                            "right_action":"take GLP-1 RA"}}}}}};
   
   
   var start_first_drug = fillLeft(add_oral, add_injectible);
@@ -288,7 +295,7 @@ function getTrees() {
                                               'operation': '==',
                                               'threshold': 1,
                                               'right_child': start_second_drug,
-                                              'left_action': 'Don\'t know how more than 2 drugs'}}}};
+                                              'left_action': 'Don\'t know how more than 2 drugs'}}};
   return [inflateTree(root1), inflateTree(root2)];
 }
 
@@ -320,6 +327,7 @@ function traverseTree(root, features) {
     } catch (e) {
       if (e instanceof NodeError) {
         results['state'] = 'need more input';
+        return results;
       } else {
         throw (e);
       }
