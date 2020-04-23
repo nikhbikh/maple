@@ -47,7 +47,14 @@ CurrentDrugs.prototype.createFeatures = function() {
   this.drug_features = new Map();
   for (let key of this.known_drugs.keys()) {
     this.drug_features.set(
-        key, new DrugInput(key, 0, this.onhide.bind(this)));
+        'taking_'+key, new DrugInput(
+            "taking_" + key, false, this.onhide.bind(this)));
+  }
+
+  for (let key of this.known_drugs.keys()) {
+    this.drug_features.set(
+        'started_' + key, new DrugInput(
+            "started_" + key, undefined, this.onhide.bind(this)));
   }
 
   this.drug_features.set(
@@ -117,7 +124,7 @@ CurrentDrugs.prototype.getSelectedDrugs = function() {
   var current_drugs = new Map();
   for (el of this.drugs) {
     let [drug, days_ago] = getSelected(el);
-    if (drug != "none" && defined(days_ago)) {
+    if (drug != "none") {
       current_drugs.set(drug, days_ago);
     }
   }
@@ -131,8 +138,8 @@ CurrentDrugs.prototype.onchange = function() {
   var min_drug = [null, Number.MAX_SAFE_INTEGER];
   for (let [drug, days_ago] of current_drugs) {
     unselected_drugs.delete(drug);
-    this.drug_features.get(drug).setValue(days_ago);
-
+    this.drug_features.get('taking_'+drug).setValue(true);
+    this.drug_features.get('started_'+drug).setValue(days_ago); 
     if (days_ago < min_drug[1]) {
       min_drug = [drug, days_ago];
     }
@@ -143,7 +150,8 @@ CurrentDrugs.prototype.onchange = function() {
   }
   this.drug_features.get('n_drugs').setValue(current_drugs.size);
   for (let d of unselected_drugs) {
-    this.drug_features.get(d).setValue(0);
+    this.drug_features.get('taking_' + d).setValue(false);
+    this.drug_features.get('started_' + d).setValue(undefined);
   }
   this.inputCallback();
 }

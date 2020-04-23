@@ -225,9 +225,9 @@ function getTrees() {
                     'threshold': 30,
                     'operation': '>=',
                     'right_child': {
-                                    'feature': 'met',
+                                    'feature': 'taking_met',
                                     'operation': '==',
-                                    'threshold': 0,
+                                    'threshold': false,
                                     'right_child': {
                                                     'feature': 'side_effects_met',
                                                     'operation': 'not',
