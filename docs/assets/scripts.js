@@ -5,7 +5,10 @@ const NOW = new Date();
 const TODAY = [NOW.getFullYear(), NOW.getMonth() + 1, NOW.getDate()].join('-');
 
 function main() {
-  var roots = getTrees();
+  getTreesFromNetwork(onTreeLoad);
+}
+
+function onTreeLoad(roots) {
   var i = new Inputs();
   window.roots = roots;
   window.i = i;

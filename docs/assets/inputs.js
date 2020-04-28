@@ -126,14 +126,17 @@ RadioInput.prototype.listen = function(inputCallback) {
   this.elts.forEach( elt => { elt.onchange = inputCallback;});
 }
 
-var ContraSu = function() {}
-ContraSu.prototype = Object.create(AbstractInput.prototype);
-ContraSu.prototype.constructor = ContraSu;
-ContraSu.prototype.getName  = function() { return 'contra_su'; }
-ContraSu.prototype.getValue = function() { return false; }
-ContraSu.prototype.show = function() {}
-ContraSu.prototype.hide = function() {}
-ContraSu.prototype.listen = function() {}
+var DummyFeature = function(name, value) {
+  this.name = name;
+  this.value = value;
+}
+DummyFeature.prototype = Object.create(AbstractInput.prototype);
+DummyFeature.prototype.constructor = DummyFeature;
+DummyFeature.prototype.getName  = function() { return this.name; }
+DummyFeature.prototype.getValue = function() { return this.value; }
+DummyFeature.prototype.show = function() {}
+DummyFeature.prototype.hide = function() {}
+DummyFeature.prototype.listen = function() {}
 
 var NOthers = function() {}
 NOthers.prototype = Object.create(AbstractInput.prototype);
@@ -163,9 +166,9 @@ function getAllElements(inputCallback) {
     new Ta1cPlus1(inputCallback),
     new RadioInput(inputCallback, 'risk'),
     new RadioInput(inputCallback, 'goals2'),
-    new SideEffectsMet(),
-    new NOthers(),
-    new ContraSu(),
+    new DummyFeature('contra_su', false),
+    new DummyFeature('n_others', 1),
+    new DummyFeature('side_effects_met', false),
   ].concat(cd.getFeatures());
   return elements
 }

@@ -1,0 +1,59 @@
+name:take_metformin
+egfr >= 30
+  => not taking_met
+    => not side_effects_met
+      => action: take metformin
+      <=
+    <=
+  <=
+
+name:take_sulfonylurea
+not contra_su
+ => action: take_sulfonylurea
+ <=
+
+name:add_oral
+fill_left tree:take_metformin tree:take_sulfonylurea
+
+name:start_first_drug
+fill_left tree:add_oral tree:add_injectible
+
+name:start_second_drug
+last_drug_time < 90
+  => action: give drug 3 months before adding a second drug
+  <= current_a1c > feature:target_a1c+1
+    => fill_left tree:add_injectible tree:add_oral
+    <= tree:add_oral
+
+name:add_injectible
+risk == ascvd_risk 
+  => action: take GLP-1 RA with CVD benefits
+  <= risk == ckd_hf_risk 
+    => egfr >= 45 
+      => action: take SGLT2i with CVD benefits
+      <= action: take GLP-1 RA with CVD benefits
+    <= risk == no_risk 
+      => goals2 == hypo_goals2
+        => action: take GLP-1 RA
+        <= goals2 == weight_goals2
+          => action: take GLP-1 RA
+          <= goals2 == no_goals2
+            => action: take GLP-1 RA
+            <= 
+      <=
+
+name:root1
+current_a1c >= 6.5
+  => tree:take_metformin
+  <=
+
+name:root2
+current_a1c > feature:target_a1c
+  => n_drugs == 0
+    => tree:start_first_drug
+    <= n_drugs == 1
+      => tree: start_second_drug
+      <= action: Don't know how to add more than 2 drugs
+  <=
+
+

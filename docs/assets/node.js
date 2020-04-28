@@ -179,6 +179,12 @@ function DFS(root, op) {
   while (node_stack.length > 0) {
     let curr_node = node_stack.pop();
     if (isLeaf(curr_node)) {
+      if (op.before) {
+        op.before(curr_node);
+      }
+      if (op.after) {
+        op.after(curr_node);
+      }
       continue;
     }
     if (op.before) {
@@ -210,10 +216,10 @@ function fillLeft(root, left) {
   var root_copy = JSON.parse(JSON.stringify(root));
   var op = {'before': () => {},
             'after': (curr_node) => {
-              if (!('left_child' in left)) {
-                curr_node['left_child'] = left;
-              }
-            }};
+          if (!('left_child' in curr_node) && ('right_child' in curr_node)) {
+            curr_node['left_child'] = left;
+          }
+        }};
 
   DFS(root_copy, op);
   return root_copy;
@@ -299,6 +305,7 @@ function getTrees() {
   return [inflateTree(root1), inflateTree(root2)];
 }
 
+
 function inflateTree(root) {
   var op = {'before': (curr_node) => {
     if (curr_node.right_child) {
@@ -311,6 +318,26 @@ function inflateTree(root) {
   var root_copy = JSON.parse(JSON.stringify(root));
   DFS(root_copy, op);
   return new Node(root_copy);
+}
+
+function getTreesFromNetwork(callback) {
+  url = document.getElementById('tree-url').getAttribute('rel')
+  var request = new XMLHttpRequest();
+  request.open('GET', url, true);
+  request.onload = function() {
+    if (request.status >= 200 && request.status < 400) {
+      content = JSON.parse(request.responseText); // Content retrieved
+      window.content = content;
+      roots = [inflateTree(content['root1']), inflateTree(content['root2'])];
+      callback(roots);
+    } else {
+      console.log('(Load Tree) Error: couldn\'t retrieve content.');
+    }
+  };
+  request.onerror = function() {
+    console.log('(Load Tree) Error: couldn\'t retrieve content.');
+  };
+  request.send();
 }
 
 
